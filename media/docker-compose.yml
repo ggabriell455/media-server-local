@@ -1,0 +1,131 @@
+name: media
+
+services:
+  qbittorrent:
+    image: lscr.io/linuxserver/qbittorrent:latest
+    container_name: qbittorrent
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - WEBUI_PORT=8080
+    volumes:
+      - ${CONFIG_DIR}/qbittorrent:/config
+      - ${DATA_DIR}/torrents:/data/torrents
+    ports:
+      - 8080:8080
+      - 6881:6881
+      - 6881:6881/udp
+
+  prowlarr:
+    image: lscr.io/linuxserver/prowlarr:latest
+    container_name: prowlarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/prowlarr:/config
+    ports:
+      - 9696:9696
+
+  sonarr:
+    image: lscr.io/linuxserver/sonarr:latest
+    container_name: sonarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/sonarr:/config
+      # Raiz inteira em um único mount: torrents/ e media/ juntos permitem hardlinks
+      - ${DATA_DIR}:/data
+    ports:
+      - 8989:8989
+    depends_on:
+      - qbittorrent
+      - prowlarr
+
+  radarr:
+    image: lscr.io/linuxserver/radarr:latest
+    container_name: radarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/radarr:/config
+      - ${DATA_DIR}:/data
+    ports:
+      - 7878:7878
+    depends_on:
+      - qbittorrent
+      - prowlarr
+
+  bazarr:
+    image: lscr.io/linuxserver/bazarr:latest
+    container_name: bazarr
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/bazarr:/config
+      # Mesmo caminho que Sonarr/Radarr enxergam, para não precisar de mapeamento
+      - ${DATA_DIR}/media:/data/media
+    ports:
+      - 6767:6767
+    depends_on:
+      - sonarr
+      - radarr
+
+  jellyfin:
+    image: lscr.io/linuxserver/jellyfin:latest
+    container_name: jellyfin
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${CONFIG_DIR}/jellyfin:/config
+      - ${DATA_DIR}/media:/data/media:ro
+    ports:
+      - 8096:8096
+    # Aceleração por GPU Intel/AMD (descomente se tiver):
+    # devices:
+    #   - /dev/dri:/dev/dri
+
+  # Pedidos de filmes/séries (opcional). Substitui o Jellyseerr, que foi unificado ao Overseerr.
+  seerr:
+    image: ghcr.io/seerr-team/seerr:latest
+    container_name: seerr
+    init: true
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - LOG_LEVEL=info
+    volumes:
+      # Roda como UID 1000 (usuário "node"): a pasta precisa pertencer a 1000:1000
+      - ${CONFIG_DIR}/seerr:/app/config
+    ports:
+      - 5055:5055
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/settings/public || exit 1
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      retries: 3
+    security_opt:
+      - no-new-privileges
+    cap_drop:
+      - ALL
+    depends_on:
+      - jellyfin
+      - sonarr
+      - radarr

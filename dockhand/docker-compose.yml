@@ -1,0 +1,24 @@
+name: dockhand
+
+# Projeto separado da stack de mídia: o Dockhand não deve ser parado nem
+# recriado por uma stack que ele mesmo administra.
+# Acesso ao socket do Docker equivale a root no host: não exponha a porta 3000 na internet.
+services:
+  dockhand:
+    image: fnsys/dockhand:latest
+    container_name: dockhand
+    restart: unless-stopped
+    ports:
+      - 3000:3000
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - DATA_DIR=${DOCKHAND_DIR}
+    # Roda como não-root: sem o GID do grupo docker ele não consegue usar o socket
+    group_add:
+      - "${DOCKER_GID}"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Dados do Dockhand e pasta das stacks, com o MESMO caminho dentro e fora do container
+      - ${DOCKHAND_DIR}:${DOCKHAND_DIR}
+      - ${STACKS_DIR}:${STACKS_DIR}

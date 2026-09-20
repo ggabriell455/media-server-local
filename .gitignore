@@ -1,0 +1,4 @@
+# Segredos e configuração local de cada servidor.
+# Use o .env.example de cada projeto como modelo.
+.env
+!.env.example
