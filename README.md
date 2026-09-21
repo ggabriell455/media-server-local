@@ -12,15 +12,16 @@ Este repositório é a **fonte da verdade** dos arquivos Docker: os `docker-comp
 4. [Estrutura do repositório e das pastas](#4-estrutura-do-repositório-e-das-pastas)
 5. [Requisitos e dependências](#5-requisitos-e-dependências)
 6. [Setup passo a passo](#6-setup-passo-a-passo)
-7. [Configuração inicial de cada aplicação](#7-configuração-inicial-de-cada-aplicação)
-8. [Operação do dia a dia](#8-operação-do-dia-a-dia)
-9. [Backup](#9-backup)
-10. [Acesso remoto](#10-acesso-remoto)
-11. [Segurança](#11-segurança)
-12. [Solução de problemas](#12-solução-de-problemas)
-13. [Fluxo de trabalho com Git](#13-fluxo-de-trabalho-com-git)
-14. [Referências](#14-referências)
-15. [Aviso legal](#15-aviso-legal)
+7. [Atalhos com `make`](#7-atalhos-com-make)
+8. [Configuração inicial de cada aplicação](#8-configuração-inicial-de-cada-aplicação)
+9. [Operação do dia a dia](#9-operação-do-dia-a-dia)
+10. [Backup](#10-backup)
+11. [Acesso remoto](#11-acesso-remoto)
+12. [Segurança](#12-segurança)
+13. [Solução de problemas](#13-solução-de-problemas)
+14. [Fluxo de trabalho com Git](#14-fluxo-de-trabalho-com-git)
+15. [Referências](#15-referências)
+16. [Aviso legal](#16-aviso-legal)
 
 ---
 
@@ -50,7 +51,9 @@ for p in media immich dockhand; do (cd "$p" && docker compose config -q && echo 
 for p in dockhand media immich; do (cd "/srv/stacks/$p" && docker compose up -d); done
 ```
 
-Depois é só configurar cada aplicação pelo navegador ([seção 7](#7-configuração-inicial-de-cada-aplicação)).
+> **Atalho:** com o repositório clonado, `make up` executa os passos 3 e 4 (e cria as pastas do passo 1 que faltarem): confere as dependências, cria os `.env`, valida e sobe tudo. É um **atalho**, não um substituto: o bloco acima e o [setup passo a passo](#6-setup-passo-a-passo) continuam sendo a referência. Veja a [seção 7](#7-atalhos-com-make).
+
+Depois é só configurar cada aplicação pelo navegador ([seção 8](#8-configuração-inicial-de-cada-aplicação)).
 
 ---
 
@@ -132,7 +135,7 @@ O conjunto Radarr, Sonarr, Bazarr e Prowlarr é conhecido como **stack \*arr**.
 - **O que é:** interface web para administrar o Docker (na linha do Portainer).
 - **Para que serve:** ver containers, logs e uso de recursos, abrir terminal, reiniciar serviços e editar stacks Compose, tudo pelo navegador.
 - **Papel neste repositório:** conveniência. A fonte da verdade continua sendo o Git + `docker compose`.
-- **Cuidado:** ele acessa o socket do Docker (equivale a **root** no servidor). Ative a autenticação assim que subir ([seção 7](#dockhand-1)).
+- **Cuidado:** ele acessa o socket do Docker (equivale a **root** no servidor). Ative a autenticação assim que subir ([seção 8](#dockhand-1)).
 
 ---
 
@@ -188,6 +191,7 @@ Sonarr e Radarr montam a raiz `/data` **inteira**, com `torrents/` e `media/` la
 midia-server-local/
 ├── README.md
 ├── .gitignore               # ignora os .env (segredos)
+├── Makefile                 # atalhos: make up / stop / clean (seção 7)
 ├── media/
 │   ├── docker-compose.yml   # Jellyfin, Radarr, Sonarr, Bazarr, Prowlarr, qBittorrent, Seerr
 │   └── .env.example
@@ -262,6 +266,7 @@ CPU x86-64: o container de aprendizado de máquina do Immich v3 exige o nível *
 | **Docker Engine** | Executa os containers | `docker --version` |
 | **Docker Compose v2** (plugin `docker compose`) | Sobe cada projeto a partir do `docker-compose.yml`. O antigo `docker-compose` (com hífen) **não** é suportado pelo Immich | `docker compose version` |
 | **git** | Clonar e versionar este repositório | `git --version` |
+| *Opcional:* **make** (GNU) | Atalhos `make up`, `make stop` e `make clean` (veja a [seção 7](#7-atalhos-com-make)) | `make --version` |
 | **curl** | Baixar arquivos e chaves | `curl --version` |
 | **openssl** | Gerar a senha do banco | `openssl version` |
 | `ca-certificates` | Validar conexões HTTPS | (instalado com o `curl`) |
@@ -275,7 +280,7 @@ CPU x86-64: o container de aprendizado de máquina do Immich v3 exige o nível *
 
 ```bash
 sudo apt update && sudo apt upgrade -y
-sudo apt install -y git curl openssl ca-certificates
+sudo apt install -y git curl openssl ca-certificates make
 ```
 
 #### Ubuntu: Docker Engine + Compose (repositório oficial do Docker)
@@ -306,7 +311,7 @@ sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin d
 ```
 
 > **Debian:** use o mesmo procedimento trocando `ubuntu` por `debian` na URL da chave e em `URIs` ([documentação](https://docs.docker.com/engine/install/debian/)).
-> **Fedora, Arch e outras:** veja a [página de instalação do Docker](https://docs.docker.com/engine/install/). No Arch: `sudo pacman -S docker docker-compose git curl openssl`.
+> **Fedora, Arch e outras:** veja a [página de instalação do Docker](https://docs.docker.com/engine/install/). No Arch: `sudo pacman -S docker docker-compose git curl openssl make`.
 
 Teste e configure para iniciar com o sistema:
 
@@ -332,7 +337,7 @@ curl -fsSL https://tailscale.com/install.sh | sh
 sudo tailscale up
 ```
 
-O `tailscale up` mostra um link para autenticar no navegador. Detalhes na [seção 10](#10-acesso-remoto).
+O `tailscale up` mostra um link para autenticar no navegador. Detalhes na [seção 11](#11-acesso-remoto).
 
 ---
 
@@ -351,6 +356,8 @@ df -h                    # espaço livre
 
 ### Passo 2: instalar as dependências
 
+> **Atalho:** depois de instalar, `make check` confere Docker, Compose v2 e o acesso ao daemon (não instala nada). Veja a [seção 7](#7-atalhos-com-make).
+
 Siga a [seção 5.3](#53-instalação-das-dependências) e confirme:
 
 ```bash
@@ -359,6 +366,8 @@ docker --version && docker compose version && git --version
 
 ### Passo 3: descobrir seus IDs
 
+> **Atalho:** o `make env` descobre esses valores e já os grava nos `.env` (passo 6).
+
 ```bash
 id -u                            # PUID
 id -g                            # PGID
@@ -366,6 +375,8 @@ getent group docker | cut -d: -f3   # DOCKER_GID
 ```
 
 ### Passo 4: criar as pastas e as permissões
+
+> **Atalho:** `make dirs` cria só as pastas que faltam, com o dono certo, usando `sudo` quando precisa.
 
 ```bash
 sudo mkdir -p /srv/data/torrents/{movies,tv} /srv/data/media/{movies,tv} \
@@ -447,6 +458,8 @@ cd /srv/stacks
 
 ### Passo 6: criar e preencher os `.env`
 
+> **Atalho:** `make env`. Nunca sobrescreve um `.env` que já existe.
+
 ```bash
 cd /srv/stacks
 for p in media immich dockhand; do cp "$p/.env.example" "$p/.env"; done
@@ -466,6 +479,8 @@ Revise os arquivos (`nano media/.env`, etc.) e confirme que os caminhos batem co
 
 ### Passo 7: validar a configuração
 
+> **Atalho:** `make validate`.
+
 ```bash
 for p in media immich dockhand; do (cd "$p" && docker compose config -q && echo "$p: OK"); done
 ```
@@ -473,6 +488,8 @@ for p in media immich dockhand; do (cd "$p" && docker compose config -q && echo 
 `config -q` só valida a sintaxe e as variáveis, sem subir nada. Um aviso `variable is not set` significa `.env` ausente ou incompleto.
 
 ### Passo 8: subir os serviços
+
+> **Atalho:** `make up` faz os passos 2 a 8 e mostra os endereços do passo 9. `make stop` para tudo.
 
 ```bash
 for p in dockhand media immich; do (cd "/srv/stacks/$p" && docker compose up -d); done
@@ -520,7 +537,111 @@ sudo reboot
 
 ---
 
-## 7. Configuração inicial de cada aplicação
+## 7. Atalhos com `make`
+
+O [`Makefile`](Makefile) na raiz do repositório é um **atalho**: cada alvo executa um ou mais passos do [setup manual](#6-setup-passo-a-passo) e **imprime os comandos que roda** (as linhas que começam com `$`). Ele **não substitui** o passo a passo: entender cada etapa é o que permite diagnosticar problemas, e qualquer comando impresso pode ser copiado e executado à mão.
+
+### O que ele faz e o que não faz
+
+| Faz | Não faz |
+|---|---|
+| Conferir Docker, Compose v2 e o acesso ao daemon | Instalar Docker/Compose (passo 2, [seção 5.3](#53-instalação-das-dependências)) |
+| Criar os `.env` e preencher PUID/PGID, `DOCKER_GID` e a senha do Postgres | Clonar o repositório (passo 5): o `Makefile` já vem dentro dele |
+| Criar só as pastas que faltam, com o dono certo | Configurar as aplicações pelo navegador ([seção 8](#8-configuração-inicial-de-cada-aplicação)) |
+| Validar os compose e as variáveis dos `.env` | Sobrescrever um `.env` que já existe |
+| Subir, parar e limpar os três projetos | Mudar o dono de pastas que já existem |
+
+### Pré-requisitos
+
+- **GNU make**: `sudo apt install -y make`.
+- **Docker Engine + Compose v2** instalados e funcionando ([seção 5.3](#53-instalação-das-dependências)). O comando `docker compose version` precisa mostrar a versão 2 ou superior (`Docker Compose version 2...` ou `v2...`, conforme o pacote).
+- **Repositório clonado** (passo 5), com o terminal aberto na pasta dele.
+- **`sudo`** para criar pastas em `/srv`. O `make` pede a senha quando precisa. **Não rode o `make` inteiro com `sudo`**: ele recusa, porque os `.env` ficariam com `PUID=0`.
+
+### Alvos
+
+| Alvo | O que faz | Equivale a |
+|---|---|---|
+| `make` ou `make help` | Lista os alvos | |
+| **`make up`** | **Tudo até ficar de pé:** roda o `setup` e sobe `dockhand`, `media` e `immich` (nessa ordem), mostrando containers e endereços | Passos 2 a 9 |
+| **`make stop`** | Para todos os containers (ordem inversa). Nada é removido: `make up` os inicia de novo | |
+| **`make clean`** | Remove containers, redes, volumes do Docker e imagens baixadas. **Os dados em disco e os `.env` ficam.** Pergunta `[s/N]` | |
+| **`make purge`** | O `clean` **mais a remoção do conteúdo** das pastas de dados, configuração e fotos, e dos `.env`. Exige digitar uma frase | |
+| `make status` | Mostra containers e endereços de acesso | Passo 9 |
+| `make check` | Confere Docker, Compose v2 e o daemon (não instala nada) | Passo 2 (só a conferência) |
+| `make env` | Cria e preenche os `.env` | Passos 3 e 6 |
+| `make dirs` | Cria as pastas de dados e configuração | Passo 4 |
+| `make validate` | Valida os compose e as variáveis dos `.env` | Passo 7 |
+| `make setup` | `check` + `env` + `dirs` + `validate`, **sem subir nada** | Passos 2 a 7 |
+
+Os alvos encadeiam o que precisam: `make dirs` roda `make env` antes, e `make up` roda `make setup` antes.
+
+### Fluxos típicos
+
+**Primeira instalação** (Docker instalado e repositório clonado):
+
+```bash
+make up
+```
+
+**Parar para manutenção e voltar depois** (nada é apagado):
+
+```bash
+make stop
+```
+
+```bash
+make up
+```
+
+**Reinstalar do zero mantendo os dados** (as imagens são baixadas de novo):
+
+```bash
+make clean
+```
+
+```bash
+make up
+```
+
+**Recomeçar 100% do zero** (apaga tudo, inclusive fotos e configurações; faça [backup](#10-backup) antes):
+
+```bash
+make purge
+```
+
+```bash
+make up
+```
+
+### Como cada alvo se comporta
+
+- **`make env`:** cria cada `.env` a partir do `.env.example` **apenas se ele não existir**. Nos arquivos novos, define `PUID`/`PGID` com o seu `id -u`/`id -g` e `DOCKER_GID` com o grupo dono do socket `/var/run/docker.sock` (ou, se não houver socket, o do grupo `docker`). A `DB_PASSWORD` do Immich é gerada **somente se estiver vazia**: uma senha existente nunca é sobrescrita, porque trocá-la depois que o banco foi criado o deixa inacessível. Os `.env` ficam com permissão `600`.
+- **`make dirs`:** cria **somente as pastas que faltam**, incluindo a do banco do Immich, e nunca altera o dono nem o conteúdo de pastas que já existem. Usa `sudo install -d` quando o local não é gravável por você (como `/srv`). A pasta do Seerr é sempre `1000:1000`. Avisa se `torrents/` e `media/` estiverem em discos diferentes (sem hardlinks, o espaço dobra).
+- **`make up`:** pode ser repetido à vontade, pois só cria o que falta. Se um projeto falhar, os outros continuam a subir e, no fim, o `make` lista quais falharam. Para investigar, use o [passo a passo](#6-setup-passo-a-passo) e os logs: `cd <projeto> && docker compose logs`.
+- **`make stop`:** usa `docker compose stop`. Containers, imagens, volumes e dados continuam onde estão.
+- **`make clean`:** usa `docker compose down --remove-orphans --volumes --rmi all` em cada projeto. Remove os **volumes do Docker** e as **imagens**, não os dados em disco (`/srv/...`).
+
+### Proteções do `make purge`
+
+O `purge` é o único alvo que apaga dados, por isso é o mais restrito:
+
+- **Confirmação digitada:** é preciso escrever `APAGAR TUDO`. Não existe atalho como o `YES=1` do `clean`, e sem terminal interativo ele recusa.
+- **Mostra antes** cada pasta que será esvaziada, com o tamanho, e os `.env` que serão removidos.
+- **Recusa caminhos perigosos** vindos dos `.env`: relativos, com `..`, a raiz `/`, pastas de primeiro nível (como `/srv`), diretórios do sistema (`/etc`, `/usr`, `/bin`, `/boot`, `/dev`, `/proc`, `/root`, `/run`, `/sys`, `/sbin`, `/lib`), a sua pasta pessoal inteira (`/home/usuario`) e **a pasta do repositório ou qualquer pasta que a contenha**. Por isso use subpastas dedicadas, como `/srv/data`.
+- **Só esvazia:** as pastas (que podem ser pontos de montagem de discos) continuam existindo, vazias. Não atravessa outros discos montados dentro delas (`-xdev`).
+- **Nunca toca no repositório** nem em nada fora das pastas listadas.
+
+### Dicas
+
+- `make -n up` mostra o que seria executado, sem rodar nada.
+- Rodar de outra pasta: `make -C /srv/stacks up`.
+- `make clean YES=1` pula a pergunta `[s/N]` (útil em scripts). O `purge` não tem equivalente.
+- Para usar outras pastas de dados, edite os `.env` **antes** do primeiro `make dirs`.
+
+---
+
+## 8. Configuração inicial de cada aplicação
 
 Caminhos **dentro dos containers** (use exatamente estes nas telas de configuração):
 
@@ -605,7 +726,7 @@ Igual ao Sonarr, com Root Folder `/data/media/movies` e Category `movies`.
 
 ---
 
-## 8. Operação do dia a dia
+## 9. Operação do dia a dia
 
 Execute dentro da pasta do projeto (`cd /srv/stacks/media`, etc.).
 
@@ -635,7 +756,7 @@ docker image prune -f
   curl -fsSL -o docker-compose.yml https://github.com/immich-app/immich/releases/latest/download/docker-compose.yml
   ```
 
-- Faça um [backup](#9-backup) antes de atualizar o Immich.
+- Faça um [backup](#10-backup) antes de atualizar o Immich.
 
 ### Diagnóstico
 
@@ -664,7 +785,7 @@ df /srv/data/torrents /srv/data/media
 
 ---
 
-## 9. Backup
+## 10. Backup
 
 | O que | Onde | Prioridade | Como |
 |---|---|---|---|
@@ -700,7 +821,7 @@ Siga a regra **3-2-1**: 3 cópias, em 2 tipos de mídia, com 1 fora de casa. Par
 
 ---
 
-## 10. Acesso remoto
+## 11. Acesso remoto
 
 Não abra portas no roteador. Use uma VPN privada como o [Tailscale](https://tailscale.com/):
 
@@ -716,7 +837,7 @@ Não abra portas no roteador. Use uma VPN privada como o [Tailscale](https://tai
 
 ---
 
-## 11. Segurança
+## 12. Segurança
 
 - **O Docker ignora o firewall (ufw/firewalld) para portas publicadas.** Um `ufw deny 8080` **não** bloqueia uma porta publicada por container. Portanto: **não faça port-forward** no roteador e não deixe o servidor com IP público.
 - **Dockhand:** ative a autenticação no primeiro acesso. Ele acessa o socket do Docker, que equivale a root.
@@ -728,7 +849,7 @@ Não abra portas no roteador. Use uma VPN privada como o [Tailscale](https://tai
 
 ---
 
-## 12. Solução de problemas
+## 13. Solução de problemas
 
 | Sintoma | Causa provável | Solução |
 |---|---|---|
@@ -740,15 +861,20 @@ Não abra portas no roteador. Use uma VPN privada como o [Tailscale](https://tai
 | Container do ML do Immich não inicia | CPU sem x86-64-v2 | Confira com o comando da [seção 5.1](#51-hardware) |
 | `port is already allocated` | Outra aplicação usa a porta | `sudo ss -ltnp \| grep :8080`; mude o número **à esquerda** de `porta:porta` no compose |
 | Arquivos duplicados em `torrents/` e `media/` (espaço dobrado) | Hardlink não funcionou: discos diferentes | Coloque `torrents/` e `media/` no mesmo disco; confira com `df /srv/data/torrents /srv/data/media` |
-| Sonarr/Radarr importam com erro de caminho | Caminhos diferentes entre os apps | Use sempre `/data/...` (veja a tabela da [seção 7](#7-configuração-inicial-de-cada-aplicação)) |
+| Sonarr/Radarr importam com erro de caminho | Caminhos diferentes entre os apps | Use sempre `/data/...` (veja a tabela da [seção 8](#8-configuração-inicial-de-cada-aplicação)) |
 | Jellyfin não mostra a mídia | Biblioteca com caminho errado ou sem permissão de leitura | Use `/data/media/movies` e `/data/media/tv`; confira `ls -ld /srv/data/media/*` |
 | Bazarr não grava legendas | Sem permissão de escrita em `/data/media` | Confira `PUID`/`PGID` e o dono das pastas (`ls -ld /srv/data/media/*`) |
 | Container reiniciando em loop | Erro na aplicação | `docker compose logs --tail 100 <serviço>` |
 | Um serviço falhou logo no primeiro `up` | Dependência ainda iniciando | Rode `docker compose up -d` de novo |
+| `make` para com "Precisa do Docker Compose v2" | O comando `docker compose` não existe ou é uma versão antiga | Instale o plugin Compose v2 ([seção 5.3](#53-instalação-das-dependências)) e confira que `docker compose version` mostra a versão 2 ou superior |
+| `make` para com "Sem acesso ao daemon do Docker" | Daemon parado ou seu usuário sem permissão | `sudo systemctl enable --now docker`; `sudo usermod -aG docker $USER` e abra uma nova sessão |
+| `make` para com "Não rode o make como root" | Foi executado com `sudo make` | Rode como usuário comum: o `make` usa `sudo` sozinho quando precisa |
+| Falha ao criar pastas em `/srv` | Seu usuário não tem `sudo` | Peça a um administrador para criar as pastas (passo 4) ou aponte os `.env` para pastas na sua home |
+| `make purge` diz "Caminho recusado por segurança" | Um caminho dos `.env` é perigoso (ex.: `/srv`, `/home/usuario` ou a pasta do repositório) | Use subpastas dedicadas, como `/srv/data` (veja [Proteções do `make purge`](#proteções-do-make-purge)) |
 
 ---
 
-## 13. Fluxo de trabalho com Git
+## 14. Fluxo de trabalho com Git
 
 O repositório é a fonte da verdade: **altere os arquivos aqui, não direto nos containers.**
 
@@ -772,11 +898,11 @@ Regras:
 
 - **Nunca** versione `.env` (está no `.gitignore`); versione o `.env.example` sempre que criar ou remover uma variável.
 - **Não edite** `immich/docker-compose.yml` à mão: para atualizar, use o compose da release (veja [Atualizar as aplicações](#atualizar-as-aplicações)) e ajuste tudo pelo `.env`.
-- Antes de subir uma mudança, valide: `docker compose config -q` dentro da pasta do projeto.
+- Antes de subir uma mudança, valide: `make validate` (ou `docker compose config -q` dentro da pasta do projeto).
 
 ---
 
-## 14. Referências
+## 15. Referências
 
 - [Jellyfin](https://jellyfin.org/docs/) · [Servarr Wiki (Sonarr, Radarr, Prowlarr)](https://wiki.servarr.com/) · [Bazarr](https://wiki.bazarr.media/)
 - [TRaSH Guides](https://trash-guides.info/): estrutura de pastas, hardlinks e perfis de qualidade
@@ -786,6 +912,6 @@ Regras:
 
 ---
 
-## 15. Aviso legal
+## 16. Aviso legal
 
 Todas as aplicações listadas são software legítimo. Use as ferramentas de download **apenas para obter conteúdo que você tem o direito de acessar**: obras próprias, de domínio público, com licença livre ou cópias que você possui legalmente. A responsabilidade pelo uso é de quem opera o servidor.
