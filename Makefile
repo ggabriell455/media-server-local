@@ -1,9 +1,9 @@
 # ==============================================================================
 # midia-server-local: atalhos para o setup
 #
-# É um ATALHO, não um substituto do passo a passo do README (seção 6): cada alvo
-# executa um ou mais passos manuais e mostra os comandos que roda. Detalhes na
-# seção 7 do README.
+# É um ATALHO, não um substituto do passo a passo (docs/setup-passo-a-passo.md):
+# cada alvo executa um ou mais passos manuais e mostra os comandos que roda.
+# Detalhes em docs/atalhos-make.md.
 #
 #   make          lista os alvos
 #   make up       faz tudo até deixar tudo de pé
@@ -107,7 +107,7 @@ endef
 .PHONY: help up stop clean purge status check env dirs validate setup
 
 help: ## Lista os alvos
-	@printf 'Atalhos para o setup. O passo a passo manual continua valendo (README, seção 6).\n'
+	@printf 'Atalhos para o setup. O passo a passo manual continua valendo (docs/setup-passo-a-passo.md).\n'
 	awk 'BEGIN{FS=":.*## "} /^##@/{printf "\n%s\n", substr($$0,5)} /^[a-zA-Z_-]+:.*## /{printf "  make %-9s %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 	printf '\nOpção: YES=1 pula a pergunta do "make clean" (ex.: make clean YES=1).\n'
 
@@ -127,7 +127,7 @@ up: setup ## Faz tudo: confere, prepara (.env e pastas), valida e sobe todos os 
 	show_status
 	[ -z "$$failed" ] || die "Não subiram:$$failed. Veja o motivo com: cd <projeto> && docker compose logs"
 	echo
-	say "Tudo de pé. Próximo passo: configurar cada aplicação (README, seção 8)."
+	say "Tudo de pé. Próximo passo: configurar cada aplicação (docs/configuracao-inicial.md)."
 
 stop: ## Para todos os containers (nada é removido; "make up" inicia de novo)
 	$(LIB)
@@ -171,7 +171,7 @@ purge: ## CUIDADO: faz o clean e APAGA os dados (configs, mídia, fotos) e os .e
 	printf '  - os arquivos .env de: %s\n' "$$projects"
 	printf '\nTambém remove containers, redes, volumes e imagens do Docker.\n'
 	printf 'A pasta do repositório (%s) NÃO é tocada. As pastas acima ficam vazias.\n' "$$ROOT"
-	printf 'Faça backup antes (README, seção 10): fotos e banco do Immich não têm volta.\n\n'
+	printf 'Faça backup antes (docs/operacao-backup-acesso.md): fotos e banco do Immich não têm volta.\n\n'
 	[ -t 0 ] || die "Sem terminal para confirmar. Rode 'make purge' direto em um terminal."
 	printf 'Para continuar, digite APAGAR TUDO: '
 	read -r ans
@@ -191,20 +191,20 @@ status: ## Mostra os containers e os endereços de acesso
 	$(LIB)
 	show_status
 
-##@ Passos individuais (cada um corresponde a um passo manual do README)
+##@ Passos individuais (cada um corresponde a um passo do setup manual)
 
 check: ## Passo 2: confere Docker, Compose v2 e acesso ao daemon (não instala nada)
 	$(LIB)
 	say "Conferindo dependências"
 	[ "$$(id -u)" -ne 0 ] || die "Não rode o make como root (sudo make): os .env ficariam com PUID=0. Rode como usuário comum; o make usa sudo só quando precisa."
-	command -v docker >/dev/null 2>&1 || die "'docker' não encontrado. Instale conforme o README, seção 5.3."
+	command -v docker >/dev/null 2>&1 || die "'docker' não encontrado. Instale conforme docs/requisitos-e-instalacao.md."
 	ok "$$(docker --version 2>/dev/null | head -n1)"
 	cv=$$(docker compose version 2>/dev/null | head -n1 || true)
 	case "$$cv" in
 	  "Docker Compose version v"[2-9]*|"Docker Compose version "[2-9]*) ok "$$cv";;
-	  *) die "Precisa do Docker Compose v2 ou superior: 'docker compose version' deve mostrar 'Docker Compose version 2...' (ou v2...). Veja o README, seção 5.3.";;
+	  *) die "Precisa do Docker Compose v2 ou superior: 'docker compose version' deve mostrar 'Docker Compose version 2...' (ou v2...). Veja docs/requisitos-e-instalacao.md.";;
 	esac
-	docker info >/dev/null 2>&1 || die "Sem acesso ao daemon do Docker. Ele está rodando? Seu usuário tem permissão? (README, seção 5.3)"
+	docker info >/dev/null 2>&1 || die "Sem acesso ao daemon do Docker. Ele está rodando? Seu usuário tem permissão? (docs/requisitos-e-instalacao.md)"
 	ok "Daemon do Docker acessível"
 	if [ "$$(id -u)" != 1000 ]; then
 	  warn "Seu UID é $$(id -u), não 1000. O Seerr sempre roda como 1000: 'make dirs' cria a pasta dele com esse dono."
@@ -241,7 +241,7 @@ env: ## Passos 3 e 6: cria os .env e preenche UID/GID, GID do docker e senha do 
 	    setval dockhand DOCKER_GID "$$gid"
 	    ok "dockhand/.env: DOCKER_GID=$$gid"
 	  else
-	    warn "Não achei o GID do socket/grupo docker. Ajuste DOCKER_GID em dockhand/.env (README, seção 6, passo 3)."
+	    warn "Não achei o GID do socket/grupo docker. Ajuste DOCKER_GID em dockhand/.env (docs/setup-passo-a-passo.md, passo 3)."
 	  fi
 	fi
 	if [ -z "$$(envval immich DB_PASSWORD)" ]; then
@@ -273,7 +273,7 @@ dirs: env ## Passo 4: cria as pastas de dados e configuração (só as que falta
 	mk "$$uid" "$$gid" "$$dh" "$$photos" "$$pgdata" "$$stacks"
 	[ "$$(stat -c %u "$$config/seerr")" = 1000 ] || warn "$$config/seerr não pertence ao UID 1000: o Seerr pode falhar com 'permission denied'. Corrija: sudo chown 1000:1000 $$config/seerr"
 	if [ "$$(stat -c %d "$$data/torrents")" != "$$(stat -c %d "$$data/media")" ]; then
-	  warn "torrents/ e media/ estão em discos diferentes: hardlinks não funcionam e o espaço dobra (README, seção 3)."
+	  warn "torrents/ e media/ estão em discos diferentes: hardlinks não funcionam e o espaço dobra (docs/aplicacoes.md)."
 	fi
 	ok "Pastas prontas"
 
