@@ -35,7 +35,7 @@ Configure na ordem abaixo: cada etapa precisa da anterior.
 ## Sonarr
 
 1. **Settings → Media Management → Root Folders**: adicione `/data/media/tv`.
-2. Ainda em Media Management, confirme que **Use Hardlinks instead of Copy** está ligado.
+2. No topo da mesma tela, clique em **Show Advanced** (fica escondido por padrão). Em **File Management**, confirme que **Use Hardlinks instead of Copy** está ligado.
 3. **Settings → Download Clients → +  → qBittorrent**:
    - Host: `qbittorrent`, Port: `8080`, usuário e senha do passo anterior
    - Category: `tv`
@@ -47,7 +47,7 @@ Igual ao Sonarr, com Root Folder `/data/media/movies` e Category `movies`.
 
 ## Bazarr
 
-1. **Settings → Sonarr**: Host `sonarr`, Port `8989`, API Key do Sonarr. **Settings → Radarr**: Host `radarr`, Port `7878`, API Key do Radarr.
+1. **Settings → Library → aba Sonarr**: ative o toggle **Enabled** primeiro — os campos de conexão só aparecem depois disso. Preencha Address/Host `sonarr`, Port `8989`, API Key do Sonarr. Repita na aba **Radarr**: Host `radarr`, Port `7878`, API Key do Radarr.
 2. **Settings → Languages**: adicione *Portuguese (Brazil)*, crie um **Languages Profile** e defina-o como padrão para séries e filmes.
 3. **Settings → Providers**: ative provedores de legenda (alguns exigem conta gratuita).
 
