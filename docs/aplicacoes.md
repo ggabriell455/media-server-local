@@ -34,6 +34,13 @@
 - **O que é:** gerenciador central de **indexadores** (os sites/trackers onde a busca é feita).
 - **Para que serve:** você cadastra os indexadores **uma vez** no Prowlarr, e ele os sincroniza automaticamente com Sonarr e Radarr. Sem ele, seria preciso cadastrar cada indexador em cada aplicativo.
 
+## FlareSolverr
+
+- **O que é:** um proxy que resolve o desafio anti-robô do Cloudflare (o "Verificando se você é humano...") rodando um navegador de verdade (Chromium) por trás dos panos.
+- **Para que serve:** alguns indexadores ficam atrás do Cloudflare, e o Prowlarr sozinho, fazendo requisições HTTP simples, não passa por esse desafio — a busca falha ou volta vazia. O FlareSolverr resolve o desafio, pega os cookies de sessão válidos e devolve para o Prowlarr usar.
+- **Opcional:** só é necessário se algum indexador específico exigir (o Prowlarr avisa, ou a busca falha com erro de Cloudflare). Cadastro em [Configuração inicial](configuracao-inicial.md#prowlarr).
+- **Depende de:** nada; é usado pelo Prowlarr, não o contrário.
+
 ## qBittorrent
 
 - **O que é:** cliente de torrent com interface web.

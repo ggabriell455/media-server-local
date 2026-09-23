@@ -13,6 +13,7 @@ Este repositório é a **fonte da verdade** dos arquivos Docker: os `docker-comp
 | [Sonarr](docs/aplicacoes.md#sonarr) | Automação | Gerencia **séries** | 8989 | `media` |
 | [Bazarr](docs/aplicacoes.md#bazarr) | Automação | Baixa e sincroniza **legendas** | 6767 | `media` |
 | [Prowlarr](docs/aplicacoes.md#prowlarr) | Automação | Central de **indexadores** | 9696 | `media` |
+| [FlareSolverr](docs/aplicacoes.md#flaresolverr) | Automação | Resolve desafios do Cloudflare (opcional) | 8191 | `media` |
 | [qBittorrent](docs/aplicacoes.md#qbittorrent) | Download | Cliente de torrent | 8080 (web), 6881 (peers) | `media` |
 | [Seerr](docs/aplicacoes.md#seerr) | Pedidos | Interface para **pedir** filmes/séries | 5055 | `media` |
 | [Immich](docs/aplicacoes.md#immich) | Fotos | Backup e galeria de fotos/vídeos | 2283 | `immich` |
@@ -61,10 +62,12 @@ Precisa de Linux 64-bit com **Docker + Compose v2**, **git** e **make** (instala
 
 ```bash
 sudo install -d -o "$USER" -g "$(id -gn)" /srv/stacks
-git clone https://github.com/ggabriell455/midia-server-local.git /srv/stacks
+gh repo clone ggabriell455/midia-server-local /srv/stacks
 cd /srv/stacks
 make up
 ```
+
+`gh repo clone` funciona com o login do GitHub CLI independente de HTTPS ou SSH. Se preferir `git clone` puro, veja as duas opções (e por que uma delas pode falhar) no [passo 5 do setup](docs/setup-passo-a-passo.md#passo-5-clonar-o-repositório).
 
 O `make up` confere as dependências, cria os `.env` e as pastas (pede a senha do `sudo` para criar as de `/srv`), valida os compose e sobe tudo. Depois, [configure cada aplicação](docs/configuracao-inicial.md) pelo navegador.
 
@@ -90,7 +93,7 @@ midia-server-local/
 ├── Makefile                 # atalhos: make up / stop / clean
 ├── docs/                    # documentação detalhada (índice abaixo)
 ├── media/
-│   ├── docker-compose.yml   # Jellyfin, Radarr, Sonarr, Bazarr, Prowlarr, qBittorrent, Seerr
+│   ├── docker-compose.yml   # Jellyfin, Radarr, Sonarr, Bazarr, Prowlarr, FlareSolverr, qBittorrent, Seerr
 │   └── .env.example
 ├── immich/
 │   ├── docker-compose.yml   # cópia sem alterações do compose oficial (v3.2.2)
@@ -111,12 +114,13 @@ Cada pasta é um **projeto Compose independente**, com seu próprio `.env`. O Do
 | [Setup passo a passo](docs/setup-passo-a-passo.md) | O processo manual completo, com as pastas do servidor e as variáveis dos `.env` |
 | [Atalhos com `make`](docs/atalhos-make.md) | Todos os alvos do Makefile, fluxos típicos e proteções do `purge` |
 | [Configuração inicial](docs/configuracao-inicial.md) | Configurar cada aplicação pelo navegador, na ordem certa |
+| [Adicionando filmes e séries](docs/adicionando-midia.md) | O fluxo de pedir, baixar e assistir, com tabela de sintomas do pedido |
 | [Operação, backup e acesso remoto](docs/operacao-backup-acesso.md) | Comandos do dia a dia, atualização, backup, Tailscale e fluxo de trabalho com Git |
 | [Solução de problemas e segurança](docs/solucao-de-problemas.md) | Tabela de sintomas e soluções e práticas de segurança |
 
 ## Referências
 
-- [Jellyfin](https://jellyfin.org/docs/) · [Servarr Wiki (Sonarr, Radarr, Prowlarr)](https://wiki.servarr.com/) · [Bazarr](https://wiki.bazarr.media/)
+- [Jellyfin](https://jellyfin.org/docs/) · [Servarr Wiki (Sonarr, Radarr, Prowlarr)](https://wiki.servarr.com/) · [Bazarr](https://wiki.bazarr.media/) · [FlareSolverr](https://github.com/FlareSolverr/FlareSolverr)
 - [TRaSH Guides](https://trash-guides.info/): estrutura de pastas, hardlinks e perfis de qualidade
 - [Seerr](https://docs.seerr.dev/) · [Immich](https://docs.immich.app/) · [Dockhand](https://dockhand.pro/manual/)
 - [LinuxServer.io](https://docs.linuxserver.io/): imagens usadas em Jellyfin, Sonarr, Radarr, Bazarr, Prowlarr e qBittorrent

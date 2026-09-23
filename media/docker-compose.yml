@@ -31,6 +31,19 @@ services:
     ports:
       - 9696:9696
 
+  # Resolve o desafio do Cloudflare para indexadores que exigem (opcional).
+  # Cadastre em Prowlarr: Settings -> Indexer Proxies -> FlareSolverr
+  # -> Host: http://flaresolverr:8191, e marque com uma Tag os indexadores que precisam dele.
+  flaresolverr:
+    image: ghcr.io/flaresolverr/flaresolverr:latest
+    container_name: flaresolverr
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+      - LOG_LEVEL=info
+    ports:
+      - 8191:8191
+
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr

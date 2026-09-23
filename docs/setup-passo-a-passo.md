@@ -117,18 +117,21 @@ findmnt /srv/data        # deve mostrar o disco montado
 
 O repositório é **privado**, então é preciso estar autenticado no GitHub. A senha da conta **não** funciona para `git` via HTTPS: use o GitHub CLI, um token ou uma chave SSH.
 
-**Opção A: GitHub CLI (mais simples)**
+**Opção A: GitHub CLI (mais simples, e a única que sempre funciona independente do protocolo escolhido)**
 
 ```bash
 sudo apt install -y gh
 gh auth login
 ```
 
-Escolha `GitHub.com` → `HTTPS` → `Login with a web browser` e responda `Yes` para autenticar o Git. Depois confirme:
+Escolha `GitHub.com`, depois `HTTPS` **ou** `SSH` (tanto faz), e `Login with a web browser`. Confirme com `gh auth status` e clone com o próprio `gh`, que descobre sozinho o protocolo certo:
 
 ```bash
-gh auth status
+gh repo clone ggabriell455/midia-server-local /srv/stacks
+cd /srv/stacks
 ```
+
+> Se você escolheu `SSH` no `gh auth login` (confira em `gh auth status`, campo "Git operations protocol"), um `git clone https://...` normal **falha** com `could not read Username for 'https://github.com'` — use sempre `gh repo clone` nesse caso, ou clone pelo endereço SSH da opção B.
 
 **Opção B: chave SSH**
 
@@ -137,16 +140,11 @@ ssh-keygen -t ed25519 -C "seu-email@exemplo.com"
 cat ~/.ssh/id_ed25519.pub
 ```
 
-Copie a chave pública exibida em **GitHub → Settings → SSH and GPG keys → New SSH key**, e teste:
+Copie a chave pública exibida em **GitHub → Settings → SSH and GPG keys → New SSH key**, teste e clone:
 
 ```bash
 ssh -T git@github.com
-```
-
-Clone (HTTPS com a opção A, ou `git@github.com:ggabriell455/midia-server-local.git` com a opção B):
-
-```bash
-git clone https://github.com/ggabriell455/midia-server-local.git /srv/stacks
+git clone git@github.com:ggabriell455/midia-server-local.git /srv/stacks
 cd /srv/stacks
 ```
 
@@ -219,6 +217,7 @@ hostname -I | awk '{print $1}'
 | Radarr | `http://IP:7878` |
 | Bazarr | `http://IP:6767` |
 | Prowlarr | `http://IP:9696` |
+| FlareSolverr | `http://IP:8191` (sem interface, só um JSON de status) |
 | qBittorrent | `http://IP:8080` |
 | Immich | `http://IP:2283` |
 | Dockhand | `http://IP:3000` |
