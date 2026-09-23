@@ -77,7 +77,14 @@ Igual ao Sonarr, com Root Folder `/data/media/movies` e Category `movies`.
 ## Dockhand
 
 1. Abra `http://IP:3000` e vá em **Settings → Authentication**: **ative a autenticação e crie o administrador**. Ela vem **desativada** por padrão e o Dockhand controla o Docker do servidor.
-2. Para administrar `media` e `immich` por ele, "adote" as stacks: o Dockhand as lista como *untracked*, e você informa o caminho do compose e do `.env`, por exemplo:
+2. **Settings → Environments**: o Dockhand não detecta o Docker do próprio host sozinho — sem cadastrar isso, nenhuma tela mostra container nenhum ("No environments" no topo, tabela vazia). Clique em **Add environment**:
+   - **Name:** por exemplo `local`
+   - **Connection type:** `Unix socket` (a lista também mostra *Direct connection*, *Hawser agent (standard)* e *Hawser agent (edge)* — são para Docker remoto/outra máquina; aqui é tudo no mesmo host, então é sempre *Unix socket*)
+   - **Socket path:** já vem preenchido com `/var/run/docker.sock` — é o socket montado em [dockhand/docker-compose.yml](../dockhand/docker-compose.yml), não precisa alterar
+   - **Public IP:** deixe em branco (opcional, só afeta links de porta)
+
+   Clique em **Test connection** e depois em **Add**.
+3. Para administrar `media` e `immich` por ele, "adote" as stacks: o Dockhand as lista como *untracked*, e você informa o caminho do compose e do `.env`, por exemplo:
    - `/srv/stacks/media/docker-compose.yml` e `/srv/stacks/media/.env`
    - `/srv/stacks/immich/docker-compose.yml` e `/srv/stacks/immich/.env`
 
