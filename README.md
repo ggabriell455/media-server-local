@@ -13,7 +13,7 @@ Este repositório é a **fonte da verdade** dos arquivos Docker: os `docker-comp
 | [Sonarr](docs/aplicacoes.md#sonarr) | Automação | Gerencia **séries** | 8989 | `media` |
 | [Bazarr](docs/aplicacoes.md#bazarr) | Automação | Baixa e sincroniza **legendas** | 6767 | `media` |
 | [Prowlarr](docs/aplicacoes.md#prowlarr) | Automação | Central de **indexadores** | 9696 | `media` |
-| [FlareSolverr](docs/aplicacoes.md#flaresolverr) | Automação | Resolve desafios do Cloudflare (opcional) | 8191 | `media` |
+| [FlareSolverr](docs/aplicacoes.md#flaresolverr) | Automação | Resolve desafios do Cloudflare (opcional) | — (só rede interna) | `media` |
 | [qBittorrent](docs/aplicacoes.md#qbittorrent) | Download | Cliente de torrent | 8080 (web), 6881 (peers) | `media` |
 | [Seerr](docs/aplicacoes.md#seerr) | Pedidos | Interface para **pedir** filmes/séries | 5055 | `media` |
 | [Immich](docs/aplicacoes.md#immich) | Fotos | Backup e galeria de fotos/vídeos | 2283 | `immich` |
@@ -89,11 +89,14 @@ Todos os alvos, o que cada um faz e as proteções do `purge`: [Atalhos com `mak
 ```
 midia-server-local/
 ├── README.md
-├── .gitignore               # ignora os .env (segredos)
-├── Makefile                 # atalhos: make up / stop / clean
+├── .gitignore               # ignora os .env (segredos) e o override local do Compose
+├── Makefile                 # atalhos: make up / stop / clean / backup-config
 ├── docs/                    # documentação detalhada (índice abaixo)
+├── scripts/
+│   └── backup-config.py     # backup das configurações dos apps (make backup-config)
 ├── media/
 │   ├── docker-compose.yml   # Jellyfin, Radarr, Sonarr, Bazarr, Prowlarr, FlareSolverr, qBittorrent, Seerr
+│   ├── docker-compose.override.yml  # opcional, local, fora do Git: GPU, IP do servidor...
 │   └── .env.example
 ├── immich/
 │   ├── docker-compose.yml   # cópia sem alterações do compose oficial (v3.2.2)

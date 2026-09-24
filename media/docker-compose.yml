@@ -1,10 +1,18 @@
 name: media
 
+# Rotação dos logs do Docker: sem limite, o log de cada container cresce para sempre.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   qbittorrent:
     image: lscr.io/linuxserver/qbittorrent:latest
     container_name: qbittorrent
     restart: unless-stopped
+    logging: *default-logging
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -13,15 +21,24 @@ services:
     volumes:
       - ${CONFIG_DIR}/qbittorrent:/config
       - ${DATA_DIR}/torrents:/data/torrents
+    # As interfaces web são publicadas em 0.0.0.0 (só IPv4): assim, um endereço IPv6
+    # global do provedor não deixa os apps acessíveis pela internet.
     ports:
-      - 8080:8080
+      - "0.0.0.0:8080:8080"
       - 6881:6881
       - 6881:6881/udp
+    healthcheck:
+      test: curl -fsS -o /dev/null http://localhost:8080/ || exit 1
+      start_period: 60s
+      timeout: 10s
+      interval: 30s
+      retries: 3
 
   prowlarr:
     image: lscr.io/linuxserver/prowlarr:latest
     container_name: prowlarr
     restart: unless-stopped
+    logging: *default-logging
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -29,25 +46,38 @@ services:
     volumes:
       - ${CONFIG_DIR}/prowlarr:/config
     ports:
-      - 9696:9696
+      - "0.0.0.0:9696:9696"
+    healthcheck:
+      test: curl -fsS -o /dev/null http://localhost:9696/ping || exit 1
+      start_period: 60s
+      timeout: 10s
+      interval: 30s
+      retries: 3
 
   # Resolve o desafio do Cloudflare para indexadores que exigem (opcional).
   # Cadastre em Prowlarr: Settings -> Indexer Proxies -> FlareSolverr
   # -> Host: http://flaresolverr:8191, e marque com uma Tag os indexadores que precisam dele.
+  # Não publica porta: só o Prowlarr o usa, pela rede interna do Docker.
   flaresolverr:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
     restart: unless-stopped
+    logging: *default-logging
     environment:
       - TZ=${TZ}
       - LOG_LEVEL=info
-    ports:
-      - 8191:8191
+    healthcheck:
+      test: curl -fsS -o /dev/null http://localhost:8191/health || exit 1
+      start_period: 60s
+      timeout: 10s
+      interval: 30s
+      retries: 3
 
   sonarr:
     image: lscr.io/linuxserver/sonarr:latest
     container_name: sonarr
     restart: unless-stopped
+    logging: *default-logging
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -57,15 +87,24 @@ services:
       # Raiz inteira em um único mount: torrents/ e media/ juntos permitem hardlinks
       - ${DATA_DIR}:/data
     ports:
-      - 8989:8989
+      - "0.0.0.0:8989:8989"
+    healthcheck:
+      test: curl -fsS -o /dev/null http://localhost:8989/ping || exit 1
+      start_period: 60s
+      timeout: 10s
+      interval: 30s
+      retries: 3
     depends_on:
-      - qbittorrent
-      - prowlarr
+      qbittorrent:
+        condition: service_healthy
+      prowlarr:
+        condition: service_healthy
 
   radarr:
     image: lscr.io/linuxserver/radarr:latest
     container_name: radarr
     restart: unless-stopped
+    logging: *default-logging
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -74,15 +113,24 @@ services:
       - ${CONFIG_DIR}/radarr:/config
       - ${DATA_DIR}:/data
     ports:
-      - 7878:7878
+      - "0.0.0.0:7878:7878"
+    healthcheck:
+      test: curl -fsS -o /dev/null http://localhost:7878/ping || exit 1
+      start_period: 60s
+      timeout: 10s
+      interval: 30s
+      retries: 3
     depends_on:
-      - qbittorrent
-      - prowlarr
+      qbittorrent:
+        condition: service_healthy
+      prowlarr:
+        condition: service_healthy
 
   bazarr:
     image: lscr.io/linuxserver/bazarr:latest
     container_name: bazarr
     restart: unless-stopped
+    logging: *default-logging
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -92,15 +140,24 @@ services:
       # Mesmo caminho que Sonarr/Radarr enxergam, para não precisar de mapeamento
       - ${DATA_DIR}/media:/data/media
     ports:
-      - 6767:6767
+      - "0.0.0.0:6767:6767"
+    healthcheck:
+      test: curl -fsS -o /dev/null http://localhost:6767/ || exit 1
+      start_period: 60s
+      timeout: 10s
+      interval: 30s
+      retries: 3
     depends_on:
-      - sonarr
-      - radarr
+      sonarr:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy
 
   jellyfin:
     image: lscr.io/linuxserver/jellyfin:latest
     container_name: jellyfin
     restart: unless-stopped
+    logging: *default-logging
     environment:
       - PUID=${PUID}
       - PGID=${PGID}
@@ -109,7 +166,13 @@ services:
       - ${CONFIG_DIR}/jellyfin:/config
       - ${DATA_DIR}/media:/data/media:ro
     ports:
-      - 8096:8096
+      - "0.0.0.0:8096:8096"
+    healthcheck:
+      test: curl -fsS -o /dev/null http://localhost:8096/health || exit 1
+      start_period: 60s
+      timeout: 10s
+      interval: 30s
+      retries: 3
     # Aceleração por GPU Intel/AMD (descomente se tiver):
     # devices:
     #   - /dev/dri:/dev/dri
@@ -120,6 +183,7 @@ services:
     container_name: seerr
     init: true
     restart: unless-stopped
+    logging: *default-logging
     environment:
       - TZ=${TZ}
       - LOG_LEVEL=info
@@ -127,7 +191,7 @@ services:
       # Roda como UID 1000 (usuário "node"): a pasta precisa pertencer a 1000:1000
       - ${CONFIG_DIR}/seerr:/app/config
     ports:
-      - 5055:5055
+      - "0.0.0.0:5055:5055"
     healthcheck:
       test: wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/settings/public || exit 1
       start_period: 20s
@@ -139,6 +203,9 @@ services:
     cap_drop:
       - ALL
     depends_on:
-      - jellyfin
-      - sonarr
-      - radarr
+      jellyfin:
+        condition: service_healthy
+      sonarr:
+        condition: service_healthy
+      radarr:
+        condition: service_healthy

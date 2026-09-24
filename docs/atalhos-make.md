@@ -31,6 +31,7 @@ O [`Makefile`](../Makefile) na raiz do repositório é um **atalho**: cada alvo 
 | **`make clean`** | Remove containers, redes, volumes do Docker e imagens baixadas. **Os dados em disco e os `.env` ficam.** Pergunta `[s/N]` | |
 | **`make purge`** | O `clean` **mais a remoção do conteúdo** das pastas de dados, configuração e fotos, e dos `.env`. Exige digitar uma frase | |
 | `make status` | Mostra containers e endereços de acesso | Passo 9 |
+| `make backup-config` | Backup das configurações dos apps em `~/backups/midia-server` (bancos SQLite copiados com segurança, sem `sudo`). Veja [Backup](operacao-backup-acesso.md#backup-das-configurações) | |
 | `make check` | Confere Docker, Compose v2 e o daemon (não instala nada) | Passo 2 (só a conferência) |
 | `make env` | Cria e preenche os `.env` | Passos 3 e 6 |
 | `make dirs` | Cria as pastas de dados e configuração | Passo 4 |

@@ -65,7 +65,7 @@ df /srv/data/torrents /srv/data/media
 |---|---|---|---|
 | Originais do Immich | `/srv/photos/immich/library`, `upload`, `profile` | **Crítica** (insubstituível) | `rsync` para outro disco/nuvem |
 | Banco do Immich | dumps em `/srv/photos/immich/backups` | **Crítica** | Automático (diário 2h, 14 últimos) + dump manual |
-| Configurações dos apps | `/srv/config` (menos `immich-postgres`) | Alta | `tar` |
+| Configurações dos apps | `/srv/config` (menos `immich-postgres`) | Alta | `make backup-config` (script) |
 | Arquivos `.env` | `/srv/stacks/*/.env` | Alta | Gerenciador de senhas |
 | Miniaturas e vídeos convertidos do Immich | `thumbs`, `encoded-video` | Baixa | Podem ser regenerados |
 | Filmes e séries | `/srv/data/media` | Baixa | Podem ser baixados de novo |
@@ -80,6 +80,22 @@ docker exec -t immich_postgres pg_dump --clean --if-exists --dbname=immich --use
 ```
 
 ### Backup das configurações
+
+O script [`scripts/backup-config.py`](../scripts/backup-config.py) gera um `.tar.gz` datado em `~/backups/midia-server` com as configurações de todos os apps e os `.env`/compose. Ele **não precisa de `sudo`** e copia os bancos SQLite com a API de backup do SQLite, que dá uma cópia consistente com o app rodando (um `tar` simples pode pegar o banco no meio de uma gravação). Ignora caches, logs e o banco do Immich (para ele use o dump acima) e mantém os 14 últimos.
+
+```bash
+make backup-config
+```
+
+Para agendar todo dia às 4h30, rode `crontab -e` e acrescente (troque o caminho pelo do seu clone):
+
+```cron
+30 4 * * * /usr/bin/python3 /caminho/do/repo/scripts/backup-config.py >> ~/backups/midia-server/backup.log 2>&1
+```
+
+Como o backup fica no mesmo disco, defina `BACKUP_SECOND_DEST=/caminho` (HD externo ou pasta de rede) no comando ou no crontab para gravar uma segunda cópia. Para restaurar, pare os containers (`make stop`), extraia o arquivo e copie a pasta `config/` de volta para `/srv/config`.
+
+O `tar` manual continua valendo, se preferir:
 
 ```bash
 sudo tar --exclude=immich-postgres -czf "/srv/backups/config-$(date +%F).tar.gz" -C /srv config

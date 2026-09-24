@@ -68,7 +68,18 @@ Igual ao Sonarr, com Root Folder `/data/media/movies` e Category `movies`.
    - Tipo *Séries* (Shows) → pasta `/data/media/tv`
 
    As duas pastas são as do **container**, não as do seu servidor. Esqueceu uma? Ela não aparece na tela inicial — repita o passo acima só para a que falta.
-3. *Opcional:* transcodificação por hardware em **Dashboard → Playback → Transcoding**, depois de descomentar `devices: /dev/dri` em `media/docker-compose.yml`.
+3. *Opcional:* transcodificação por hardware em **Dashboard → Playback → Transcoding**, depois de repassar a GPU ao container. O jeito mais limpo é criar `media/docker-compose.override.yml` (o Git o ignora e o Compose o aplica sozinho) em vez de editar o `docker-compose.yml`:
+
+   ```yaml
+   services:
+     jellyfin:
+       devices:
+         - /dev/dri/renderD128:/dev/dri/renderD128   # confira o seu com: ls -l /dev/dri/by-path
+       group_add:
+         - "992"   # GID do grupo "render": getent group render
+   ```
+
+   Depois rode `docker compose up -d` em `media/` e escolha **VAAPI** (ou **Intel QuickSync**) no painel. Dá para testar antes de confiar: `docker exec -u abc jellyfin /usr/lib/jellyfin-ffmpeg/ffmpeg -init_hw_device vaapi=va:/dev/dri/renderD128 -f lavfi -i testsrc=duration=1 -vf format=nv12,hwupload -c:v h264_vaapi -f null -` deve terminar sem erro.
 
 ## Seerr
 

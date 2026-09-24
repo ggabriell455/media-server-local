@@ -217,7 +217,6 @@ hostname -I | awk '{print $1}'
 | Radarr | `http://IP:7878` |
 | Bazarr | `http://IP:6767` |
 | Prowlarr | `http://IP:9696` |
-| FlareSolverr | `http://IP:8191` (sem interface, só um JSON de status) |
 | qBittorrent | `http://IP:8080` |
 | Immich | `http://IP:2283` |
 | Dockhand | `http://IP:3000` |

@@ -2,3 +2,6 @@
 # Use o .env.example de cada projeto como modelo.
 .env
 !.env.example
+
+# Ajustes locais do Compose (GPU, IP do servidor...); o Compose aplica sozinho.
+docker-compose.override.yml

@@ -24,7 +24,7 @@ SHELL         := /bin/bash
 ROOT      := $(abspath $(dir $(lastword $(MAKEFILE_LIST))))
 PROJECTS  := dockhand media immich
 RPROJECTS := immich media dockhand
-URLS      := Jellyfin:8096 Seerr:5055 Sonarr:8989 Radarr:7878 Bazarr:6767 Prowlarr:9696 FlareSolverr:8191 qBittorrent:8080 Immich:2283 Dockhand:3000
+URLS      := Jellyfin:8096 Seerr:5055 Sonarr:8989 Radarr:7878 Bazarr:6767 Prowlarr:9696 qBittorrent:8080 Immich:2283 Dockhand:3000
 
 # Funções de shell compartilhadas. Cada alvo começa com $(LIB); como o Makefile
 # usa .ONESHELL, tudo roda em um único shell (bash) por alvo.
@@ -190,6 +190,10 @@ purge: ## CUIDADO: faz o clean e APAGA os dados (configs, mídia, fotos) e os .e
 status: ## Mostra os containers e os endereços de acesso
 	$(LIB)
 	show_status
+
+backup-config: ## Backup das configurações dos apps em ~/backups/midia-server (sem sudo)
+	$(LIB)
+	run python3 "$$ROOT/scripts/backup-config.py"
 
 ##@ Passos individuais (cada um corresponde a um passo do setup manual)
 

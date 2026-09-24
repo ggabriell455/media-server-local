@@ -40,6 +40,7 @@
 - **Para que serve:** alguns indexadores ficam atrás do Cloudflare, e o Prowlarr sozinho, fazendo requisições HTTP simples, não passa por esse desafio — a busca falha ou volta vazia. O FlareSolverr resolve o desafio, pega os cookies de sessão válidos e devolve para o Prowlarr usar.
 - **Opcional:** só é necessário se algum indexador específico exigir (o Prowlarr avisa, ou a busca falha com erro de Cloudflare). Cadastro em [Configuração inicial](configuracao-inicial.md#prowlarr).
 - **Depende de:** nada; é usado pelo Prowlarr, não o contrário.
+- **Acesso:** não publica porta no servidor (não há `http://IP:8191`): só o Prowlarr o alcança, pela rede interna do Docker (`http://flaresolverr:8191`). O estado dele aparece como *healthy* em `docker ps`.
 
 ## qBittorrent
 
