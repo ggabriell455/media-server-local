@@ -7,6 +7,11 @@ backup do SQLite, que produz uma cópia consistente mesmo com o app rodando; um
 "tar" simples pode copiar o banco no meio de uma gravação. Caches, logs, capas e
 arquivos de transcodificação ficam de fora, pois são regenerados.
 
+Opção:
+  --if-older HORAS    só faz o backup se o último tiver mais de HORAS horas (sai em silêncio
+                      se estiver recente). Serve para chamar de hora em hora pelo cron num
+                      servidor que desliga ou suspende: o backup sai logo depois de ligar.
+
 Variáveis opcionais:
   CONFIG_DIR          pasta das configurações            (padrão: /srv/config)
   BACKUP_DIR          onde guardar os arquivos           (padrão: ~/backups/midia-server)
@@ -117,9 +122,22 @@ def rotate(folder):
         log(f"removido backup antigo: {old.name}")
 
 
+def newest_age_hours(folder):
+    archives = sorted(folder.glob("midia-config-*.tar.gz"))
+    return (time.time() - archives[-1].stat().st_mtime) / 3600 if archives else None
+
+
 def main():
     if not CONFIG_DIR.is_dir():
         sys.exit(f"erro: {CONFIG_DIR} não existe")
+    if "--if-older" in sys.argv:
+        try:
+            hours = float(sys.argv[sys.argv.index("--if-older") + 1])
+        except (IndexError, ValueError):
+            sys.exit("uso: backup-config.py [--if-older HORAS]")
+        age = newest_age_hours(DEST)
+        if age is not None and age < hours:
+            return 0  # backup recente: não faz nada e não escreve no log
     os.umask(0o077)  # o arquivo tem .env e chaves de API: só o dono lê
     DEST.mkdir(parents=True, exist_ok=True)
     name = f"midia-config-{time.strftime('%Y%m%d-%H%M%S')}.tar.gz"

@@ -33,7 +33,7 @@ O [`Makefile`](../Makefile) na raiz do repositório é um **atalho**: cada alvo 
 | `make status` | Mostra containers e endereços de acesso | Passo 9 |
 | `make backup-config` | Backup das configurações dos apps em `~/backups/midia-server` (bancos SQLite copiados com segurança, sem `sudo`). Veja [Backup](operacao-backup-acesso.md#backup-das-configurações) | |
 | `make check` | Confere Docker, Compose v2 e o daemon (não instala nada) | Passo 2 (só a conferência) |
-| `make env` | Cria e preenche os `.env` | Passos 3 e 6 |
+| `make env` | Cria e preenche os `.env` e cria os `docker-compose.override.yml` a partir dos exemplos | Passos 3 e 6 |
 | `make dirs` | Cria as pastas de dados e configuração | Passo 4 |
 | `make validate` | Valida os compose e as variáveis dos `.env` | Passo 7 |
 | `make setup` | `check` + `env` + `dirs` + `validate`, **sem subir nada** | Passos 2 a 7 |
@@ -80,7 +80,7 @@ make up
 
 ## Como cada alvo se comporta
 
-- **`make env`:** cria cada `.env` a partir do `.env.example` **apenas se ele não existir**. Nos arquivos novos, define `PUID`/`PGID` com o seu `id -u`/`id -g` e `DOCKER_GID` com o grupo dono do socket `/var/run/docker.sock` (ou, se não houver socket, o do grupo `docker`). A `DB_PASSWORD` do Immich é gerada **somente se estiver vazia**: uma senha existente nunca é sobrescrita, porque trocá-la depois que o banco foi criado o deixa inacessível. Os `.env` ficam com permissão `600`.
+- **`make env`:** cria cada `.env` a partir do `.env.example` **apenas se ele não existir**. Nos arquivos novos, define `PUID`/`PGID` com o seu `id -u`/`id -g` e `DOCKER_GID` com o grupo dono do socket `/var/run/docker.sock` (ou, se não houver socket, o do grupo `docker`). A `DB_PASSWORD` do Immich é gerada **somente se estiver vazia**: uma senha existente nunca é sobrescrita, porque trocá-la depois que o banco foi criado o deixa inacessível. Os `.env` ficam com permissão `600`. Também cria `media/docker-compose.override.yml` e `immich/docker-compose.override.yml` a partir dos `docker-compose.override.example.yml` **apenas se eles não existirem**: o padrão traz só o que vale para qualquer servidor (rotação de logs, política de reinício); a aceleração por GPU e o IP ficam **comentados** para você descomentar conforme o seu hardware ([Hardware e ajustes desta máquina](hardware-desta-maquina.md)).
 - **`make dirs`:** cria **somente as pastas que faltam**, incluindo a do banco do Immich, e nunca altera o dono nem o conteúdo de pastas que já existem. Usa `sudo install -d` quando o local não é gravável por você (como `/srv`). A pasta do Seerr é sempre `1000:1000`. Avisa se `torrents/` e `media/` estiverem em discos diferentes (sem hardlinks, o espaço dobra).
 - **`make up`:** pode ser repetido à vontade, pois só cria o que falta. Se um projeto falhar, os outros continuam a subir e, no fim, o `make` lista quais falharam. Para investigar, use o [passo a passo](setup-passo-a-passo.md) e os logs: `cd <projeto> && docker compose logs`.
 - **`make stop`:** usa `docker compose stop`. Containers, imagens, volumes e dados continuam onde estão.

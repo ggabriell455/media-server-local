@@ -1,5 +1,12 @@
 name: dockhand
 
+# Mesma rotação de logs da stack de mídia (10 MB x 3 arquivos).
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 # Projeto separado da stack de mídia: o Dockhand não deve ser parado nem
 # recriado por uma stack que ele mesmo administra.
 # Acesso ao socket do Docker equivale a root no host: não exponha a porta 3000 na internet.
@@ -8,6 +15,7 @@ services:
     image: fnsys/dockhand:latest
     container_name: dockhand
     restart: unless-stopped
+    logging: *default-logging
     ports:
       - 3000:3000
     environment:

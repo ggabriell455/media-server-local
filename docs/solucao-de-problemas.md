@@ -16,6 +16,8 @@
 | Arquivos duplicados em `torrents/` e `media/` (espaço dobrado) | Hardlink não funcionou: discos diferentes | Coloque `torrents/` e `media/` no mesmo disco; confira com `df /srv/data/torrents /srv/data/media` |
 | Sonarr/Radarr importam com erro de caminho | Caminhos diferentes entre os apps | Use sempre `/data/...` (veja a tabela da [seção Configuração inicial](configuracao-inicial.md)) |
 | Jellyfin não mostra a mídia | Biblioteca com caminho errado ou sem permissão de leitura | Use `/data/media/movies` e `/data/media/tv`; confira `ls -ld /srv/data/media/*` |
+| Episódios ou filmes aparecem trocados ou repetidos no Jellyfin (por exemplo, três arquivos como o mesmo episódio) | O renomeio está desligado e o nome do release tem vários números (o "10" de `HEVC-10bit` vira o episódio 10) | Ligue **Rename Episodes** no Sonarr e **Rename Movies** no Radarr ([Configuração inicial](configuracao-inicial.md#sonarr)) e use **Preview Rename** nos itens já importados |
+| Série ou filme novo só aparece no Jellyfin depois de escanear | O Jellyfin só passa a vigiar uma pasta depois de um scan que encontre conteúdo nela, e o aviso do Sonarr/Radarr não basta para um título novo | Rode uma vez **Painel → Bibliotecas → Escanear todas as bibliotecas**; depois a pasta passa a ser vigiada. Opcional: em **Tarefas agendadas → Escanear a Biblioteca de Mídia**, adicione um gatilho de 1 hora |
 | Bazarr não grava legendas | Sem permissão de escrita em `/data/media` | Confira `PUID`/`PGID` e o dono das pastas (`ls -ld /srv/data/media/*`) |
 | Container reiniciando em loop | Erro na aplicação | `docker compose logs --tail 100 <serviço>` |
 | Um serviço falhou logo no primeiro `up` | Dependência ainda iniciando | Rode `docker compose up -d` de novo |

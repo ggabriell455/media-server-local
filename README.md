@@ -89,17 +89,20 @@ Todos os alvos, o que cada um faz e as proteções do `purge`: [Atalhos com `mak
 ```
 midia-server-local/
 ├── README.md
-├── .gitignore               # ignora os .env (segredos) e o override local do Compose
+├── .gitignore               # ignora os .env (segredos) e os overrides locais do Compose
 ├── Makefile                 # atalhos: make up / stop / clean / backup-config
 ├── docs/                    # documentação detalhada (índice abaixo)
 ├── scripts/
-│   └── backup-config.py     # backup das configurações dos apps (make backup-config)
+│   ├── backup-config.py     # backup das configurações dos apps (make backup-config)
+│   └── telemetria.py        # temperatura, ventoinhas, GPUs e containers em CSV (cron)
 ├── media/
 │   ├── docker-compose.yml   # Jellyfin, Radarr, Sonarr, Bazarr, Prowlarr, FlareSolverr, qBittorrent, Seerr
-│   ├── docker-compose.override.yml  # opcional, local, fora do Git: GPU, IP do servidor...
+│   ├── docker-compose.override.example.yml  # modelo do override local (GPU e IP comentados)
+│   ├── docker-compose.override.yml  # local, fora do Git, criado do exemplo pelo make env
 │   └── .env.example
 ├── immich/
-│   ├── docker-compose.yml   # cópia sem alterações do compose oficial (v3.2.2)
+│   ├── docker-compose.yml   # cópia sem alterações do compose oficial (v3.4.2)
+│   ├── docker-compose.override.example.yml  # modelo do override local (logs, reinício, GPU comentada)
 │   └── .env.example
 └── dockhand/
     ├── docker-compose.yml   # Dockhand (projeto separado de propósito)
@@ -118,6 +121,7 @@ Cada pasta é um **projeto Compose independente**, com seu próprio `.env`. O Do
 | [Atalhos com `make`](docs/atalhos-make.md) | Todos os alvos do Makefile, fluxos típicos e proteções do `purge` |
 | [Configuração inicial](docs/configuracao-inicial.md) | Configurar cada aplicação pelo navegador, na ordem certa |
 | [Adicionando filmes e séries](docs/adicionando-midia.md) | O fluxo de pedir, baixar e assistir, com tabela de sintomas do pedido |
+| [Hardware e ajustes desta máquina](docs/hardware-desta-maquina.md) | O que é específico do servidor onde isto foi validado (duas GPUs, energia, rede), como replicar e a linha de base de calor e consumo |
 | [Operação, backup e acesso remoto](docs/operacao-backup-acesso.md) | Comandos do dia a dia, atualização, backup, Tailscale e fluxo de trabalho com Git |
 | [Solução de problemas e segurança](docs/solucao-de-problemas.md) | Tabela de sintomas e soluções e práticas de segurança |
 

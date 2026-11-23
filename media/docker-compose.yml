@@ -164,7 +164,9 @@ services:
       - TZ=${TZ}
     volumes:
       - ${CONFIG_DIR}/jellyfin:/config
-      - ${DATA_DIR}/media:/data/media:ro
+      # Sem ":ro" de propósito: assim o Jellyfin consegue excluir arquivos pela interface.
+      # Para uma biblioteca somente leitura, acrescente ":ro" ao final desta linha.
+      - ${DATA_DIR}/media:/data/media
     ports:
       - "0.0.0.0:8096:8096"
     healthcheck:
@@ -173,9 +175,9 @@ services:
       timeout: 10s
       interval: 30s
       retries: 3
-    # Aceleração por GPU Intel/AMD (descomente se tiver):
-    # devices:
-    #   - /dev/dri:/dev/dri
+    # Aceleração por GPU (Intel/AMD): não fica aqui porque depende do hardware de cada servidor.
+    # Use o docker-compose.override.example.yml (copie para docker-compose.override.yml) e
+    # descomente o bloco da sua GPU. Veja docs/hardware-desta-maquina.md.
 
   # Pedidos de filmes/séries (opcional). Substitui o Jellyseerr, que foi unificado ao Overseerr.
   seerr:

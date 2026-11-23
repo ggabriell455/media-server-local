@@ -1,0 +1,45 @@
+# Exemplo de ajustes LOCAIS da stack de mídia (GPU, rede).
+#
+# Como usar: copie para docker-compose.override.yml (o Git ignora esse arquivo e o Compose o
+# aplica sozinho por cima do docker-compose.yml, sem nenhuma opção extra). O `make env` faz
+# essa cópia quando o override ainda não existe.
+#
+#   cp docker-compose.override.example.yml docker-compose.override.yml
+#
+# Tudo que depende do hardware ou da rede de UM servidor está COMENTADO: o padrão funciona em
+# qualquer máquina, só sem aceleração. Descomente apenas o que se aplica à sua. Os blocos
+# marcados com ">>>" e "<<<" são opções; o que estiver fora deles vale para qualquer servidor.
+#
+# Os valores de exemplo vêm do servidor onde isto foi validado (notebook Acer Predator
+# PHN16-72: Intel i7-14700HX com UHD 770 + NVIDIA RTX 4070 Laptop). Detalhes e o raciocínio
+# em docs/hardware-desta-maquina.md.
+
+services:
+  jellyfin:
+    ports:
+      - "0.0.0.0:7359:7359/udp"   # descoberta automática dos apps na rede local
+
+    # OPÇÃO: aceleração por GPU Intel integrada (Quick Sync / VAAPI).
+    # Depois, em Painel > Reprodução > Transcodificação, escolha "VAAPI" e informe o
+    # "Dispositivo VA-API". Em máquinas com duas GPUs os números renderD128/renderD129 trocam de
+    # dono entre boots; por isso a pasta /dev/dri vai inteira e o dispositivo é informado pelo
+    # atalho de PCI, que não muda: /dev/dri/by-path/pci-0000:00:02.0-render (a Intel costuma
+    # ser a 00:02.0; confira com `ls -l /dev/dri/by-path`). O GID do grupo "render" muda de
+    # máquina para máquina: `getent group render`.
+    # >>> GPU Intel integrada
+    # devices:
+    #   - source: /dev/dri
+    #     target: /dev/dri
+    #     permissions: rwm
+    # volumes:
+    #   - /dev/dri/by-path:/dev/dri/by-path:ro
+    # group_add:
+    #   - "992"
+    # <<<
+
+    # OPÇÃO: endereço que o Jellyfin anuncia na descoberta automática dos apps (troque pelo IP
+    # fixo do seu servidor na rede local).
+    # >>> Endereço anunciado
+    # environment:
+    #   - JELLYFIN_PublishedServerUrl=http://IP-DO-SERVIDOR:8096
+    # <<<

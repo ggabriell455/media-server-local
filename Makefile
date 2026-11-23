@@ -214,7 +214,7 @@ check: ## Passo 2: confere Docker, Compose v2 e acesso ao daemon (não instala n
 	  warn "Seu UID é $$(id -u), não 1000. O Seerr sempre roda como 1000: 'make dirs' cria a pasta dele com esse dono."
 	fi
 
-env: ## Passos 3 e 6: cria os .env e preenche UID/GID, GID do docker e senha do Immich
+env: ## Passos 3 e 6: cria os .env (UID/GID, GID do docker, senha do Immich) e os overrides locais
 	$(LIB)
 	say "Preparando os arquivos .env"
 	[ "$$(id -u)" -ne 0 ] || die "Não rode o make como root (sudo make): os .env ficariam com PUID=0. Rode como usuário comum."
@@ -255,6 +255,12 @@ env: ## Passos 3 e 6: cria os .env e preenche UID/GID, GID do docker e senha do 
 	fi
 	[ -n "$$(envval immich DB_PASSWORD)" ] || die "immich/.env sem a linha DB_PASSWORD="
 	for p in $$projects; do chmod 600 "$$p/.env"; done
+	for p in media immich; do
+	  if [ -f "$$p/docker-compose.override.example.yml" ] && [ ! -f "$$p/docker-compose.override.yml" ]; then
+	    cp "$$p/docker-compose.override.example.yml" "$$p/docker-compose.override.yml"
+	    ok "$$p/docker-compose.override.yml criado a partir do exemplo (GPU e IP comentados)"
+	  fi
+	done
 
 dirs: env ## Passo 4: cria as pastas de dados e configuração (só as que faltam)
 	$(LIB)

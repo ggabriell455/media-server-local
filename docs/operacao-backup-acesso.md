@@ -93,6 +93,12 @@ Para agendar todo dia às 4h30, rode `crontab -e` e acrescente (troque o caminho
 30 4 * * * /usr/bin/python3 /caminho/do/repo/scripts/backup-config.py >> ~/backups/midia-server/backup.log 2>&1
 ```
 
+Se o servidor é desligado ou suspende à noite, o horário fixo pode nunca acontecer (o cron não recupera execuções perdidas). Nesse caso use a opção `--if-older`: o cron chama de hora em hora, mas o script só faz o backup quando o último tem mais de 20 h, ou seja, logo depois de o servidor ligar.
+
+```cron
+15 * * * * /usr/bin/python3 /caminho/do/repo/scripts/backup-config.py --if-older 20 >> ~/backups/midia-server/backup.log 2>&1
+```
+
 Como o backup fica no mesmo disco, defina `BACKUP_SECOND_DEST=/caminho` (HD externo ou pasta de rede) no comando ou no crontab para gravar uma segunda cópia. Para restaurar, pare os containers (`make stop`), extraia o arquivo e copie a pasta `config/` de volta para `/srv/config`.
 
 O `tar` manual continua valendo, se preferir:
@@ -108,6 +114,16 @@ rsync -a --info=progress2 /srv/photos/immich/ /mnt/backup/immich/
 ```
 
 Siga a regra **3-2-1**: 3 cópias, em 2 tipos de mídia, com 1 fora de casa. Para restaurar o Immich, siga a [documentação oficial de backup e restauração](https://docs.immich.app/administration/backup-and-restore).
+
+### Temperatura e consumo (telemetria)
+
+O [`scripts/telemetria.py`](../scripts/telemetria.py) grava num CSV (`~/telemetria-servidor/telemetria.csv`) a temperatura da CPU e dos NVMe, as ventoinhas, a frequência, o uso das GPUs, a bateria e quantos containers estão saudáveis. Serve para responder, dias depois, "esquentou?" e "a GPU ficou acordada o tempo todo?". Ele só lê `/sys`, `docker ps` e `nvidia-smi`, não precisa de root e **não acorda a GPU NVIDIA** para medir. Agende a cada 2 minutos com `crontab -e` (troque o caminho):
+
+```cron
+*/2 * * * * /usr/bin/python3 -I /caminho/do/repo/scripts/telemetria.py >> ~/telemetria-servidor/erros.log 2>&1
+```
+
+A potência da CPU (watts) só aparece se o contador RAPL for legível, e por padrão ele é só de root: `sudo chmod -R a+r /sys/class/powercap/intel-rapl:0` libera até o próximo boot. Sensores que a máquina não tem ficam em branco.
 
 ## Acesso remoto
 

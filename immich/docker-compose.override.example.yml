@@ -1,0 +1,77 @@
+# Exemplo de ajustes LOCAIS do Immich (rotação de logs, política de reinício, GPU).
+#
+# O docker-compose.yml do Immich é cópia do oficial e não se edita; o que fica aqui sobrevive
+# às atualizações. Copie para docker-compose.override.yml (o Git ignora esse arquivo e o
+# Compose o aplica sozinho). O `make env` faz essa cópia quando o override ainda não existe.
+#
+#   cp docker-compose.override.example.yml docker-compose.override.yml
+#
+# Tudo que depende do hardware de UM servidor está COMENTADO: o padrão funciona em qualquer
+# máquina, só usando a CPU. Descomente apenas o que se aplica à sua. Os blocos marcados com
+# ">>>" e "<<<" são opções; o que estiver fora deles vale para qualquer servidor.
+#
+# Os valores de exemplo vêm do servidor onde isto foi validado (notebook Acer Predator
+# PHN16-72: Intel i7-14700HX com UHD 770 + NVIDIA RTX 4070 Laptop). Detalhes e o raciocínio
+# em docs/hardware-desta-maquina.md. Documentação oficial:
+# https://docs.immich.app/features/ml-hardware-acceleration
+
+# Mesma rotação de logs da mídia (10 MB x 3 arquivos). O compose oficial não limita, e um
+# log sem limite pode crescer até encher o disco.
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  # Mesma política da mídia e do Dockhand: o que for parado à mão (docker stop, make stop)
+  # não volta sozinho depois de um reboot. O oficial usa "always".
+  immich-server:
+    restart: unless-stopped
+    logging: *default-logging
+
+    # OPÇÃO: transcodificação de vídeo na GPU NVIDIA (NVENC). Requer o nvidia-container-toolkit
+    # no servidor (veja docs/hardware-desta-maquina.md). Depois escolha NVENC em Administração >
+    # Configurações > Transcodificação de vídeo > Aceleração por hardware. Equivale a
+    # "extends: nvenc" do hwaccel.transcoding.yml oficial.
+    # >>> NVENC (NVIDIA)
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu, compute, video]
+    # <<<
+
+  immich-machine-learning:
+    restart: unless-stopped
+    logging: *default-logging
+
+    # OPÇÃO A: aprendizado de máquina (rostos, busca, OCR) na GPU NVIDIA (CUDA). A mais rápida.
+    # Requer o nvidia-container-toolkit. Escolha A ou B, não as duas.
+    # >>> CUDA (NVIDIA)
+    # image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}-cuda
+    # deploy:
+    #   resources:
+    #     reservations:
+    #       devices:
+    #         - driver: nvidia
+    #           count: 1
+    #           capabilities: [gpu]
+    # <<<
+
+    # OPÇÃO B: aprendizado de máquina na GPU Intel (OpenVINO). Gasta menos energia e não exige
+    # instalar nada no sistema. A imagem "-openvino" pode ficar uma versão patch atrás da principal.
+    # >>> OpenVINO (Intel)
+    # image: ghcr.io/immich-app/immich-machine-learning:${IMMICH_VERSION:-release}-openvino
+    # devices:
+    #   - /dev/dri:/dev/dri
+    # <<<
+
+  redis:
+    restart: unless-stopped
+    logging: *default-logging
+  database:
+    restart: unless-stopped
+    logging: *default-logging
